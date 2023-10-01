@@ -1,4 +1,5 @@
 ## BIBLIOTECAS
+from st_pages import add_page_title
 from pandas import json_normalize
 from bs4 import BeautifulSoup
 from io import BytesIO
@@ -12,12 +13,13 @@ import requests
 import urllib
 import re
 
+add_page_title(layout="wide")
 # CACHEAR OS DADOS AO ABRIR A PAQUINA
-@st.cache_data
+# @st.cache_data
 
 # DADOS
 ## WEB SCRAPING CSV LEITOS HOSPITALARES COVID
-url="https://opendatasus.saude.gov.br/dataset/registro-de-ocupacao-hospitalar-covid-19"
+url = 'https://opendatasus.saude.gov.br/dataset/registro-de-ocupacao-hospitalar-covid-19'
 
 req = requests.get(url)
 soup = BeautifulSoup(req.text, features="html.parser")
@@ -31,7 +33,9 @@ for i in li:
                  encoding='UTF-8',
                  delimiter=',',
                  header=0,
-                 decimal='.')
+                 decimal='.',
+                 low_memory = False)
+    
     l.append(df)
 
 df_leitos_hosp_covid = pd.concat(l, axis=0, ignore_index=True)
@@ -146,8 +150,7 @@ fig_leitos_municipios = px.histogram(leitos_percentual_geral_municipios,
 fig_leitos_municipios.update_layout(yaxis_title='')
 fig_leitos_municipios.update_layout(xaxis_title='')
 
-with aba3:
-     tabela_ativa = 3
-     st.plotly_chart(fig_leitos_estados, use_container_width=True)
-     st.plotly_chart(fig_leitos_municipios, use_container_width=True)
+# VISUALIZACAO STREAMLIT
+st.plotly_chart(fig_leitos_estados, use_container_width=True)
+st.plotly_chart(fig_leitos_municipios, use_container_width=True)
              

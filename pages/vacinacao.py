@@ -1,4 +1,5 @@
 ## BIBLIOTECAS
+from st_pages import add_page_title
 from pandas import json_normalize
 from bs4 import BeautifulSoup
 from io import BytesIO
@@ -12,10 +13,48 @@ import requests
 import urllib
 import re
 
+
+add_page_title(layout="wide")
+
 # CACHEAR OS DADOS AO ABRIR A PAQUINA
-@st.cache_data
+# @st.cache_data
 
 # DADOS
+## LATITUDE E LONGITUDE DOS ESTADOS BRASILEIROS
+dados = [
+        ["AC","-8.77","-70.55"],
+        ["AL","-9.62","-36.82"],
+        ["AM","-3.47","-65.10"],
+        ["AP","1.41","-51.77"],
+        ["BA","-13.29","-41.71"],
+        ["CE","-5.20","-39.53"],
+        ["DF","-15.83","-47.86"],
+        ["ES","-19.19","-40.34"],
+        ["GO","-15.98","-49.86"],
+        ["MA","-5.42","-45.44"],
+        ["MT","-12.64","-55.42"],
+        ["MS","-20.51","-54.54"],
+        ["MG","-18.10","-44.38"],
+        ["PA","-3.79","-52.48"],
+        ["PB","-7.28","-36.72"],
+        ["PR","-24.89","-51.55"],
+        ["PE","-8.38","-37.86"],
+        ["PI","-6.60","-42.28"],
+        ["RJ","-22.25","-42.66"],
+        ["RN","-5.81","-36.59"],
+        ["RO","-10.83","-63.34"],
+        ["RS","-30.17","-53.50"],
+        ["RR","1.99","-61.33"],
+        ["SC","-27.45","-50.95"],
+        ["SE","-10.57","-37.45"],
+        ["SP","-22.19","-48.79"],
+        ["TO","-9.46","-48.26"]
+]
+
+cols = ["uf","latitude","longitude"]
+
+df_lat_long = pd.DataFrame(data=dados, columns=cols)
+
 ## ACESSO API VACINACAO COVID
 url = "https://imunizacao-es.saude.gov.br/_search?scroll=10m"
 
@@ -142,12 +181,10 @@ fig_vacinacao_dose_estado.update_layout(yaxis_title='')
 fig_vacinacao_dose_estado.update_layout(xaxis_title='')
 
 # VISUALIZACAO STREAMLIT
-with aba2:
-        tabela_ativa = 2
-        coluna1, coluna2 = st.columns(2)
-        with coluna1:
-             st.plotly_chart(fig_mapa_vacinacao_estados, use_container_width=True)
-        with coluna2:
-             st.plotly_chart(fig_municipios_vacinacao_estados, use_container_width=True)
-        
-        st.plotly_chart(fig_vacinacao_dose_estado, use_container_width=True)
+coluna1, coluna2 = st.columns(2)
+with coluna1:
+      st.plotly_chart(fig_mapa_vacinacao_estados, use_container_width=True)
+with coluna2:
+      st.plotly_chart(fig_municipios_vacinacao_estados, use_container_width=True)
+
+st.plotly_chart(fig_vacinacao_dose_estado, use_container_width=True)
