@@ -9,6 +9,7 @@ import plotly.express as px
 import streamlit as st
 import pandas as pd
 import numpy as np
+import pyautogui
 import requests
 import urllib
 import re
@@ -115,6 +116,39 @@ li = [
 ]
 
 df_api_vaci_covid = df_api_vaci_covid[li]
+
+# CRIA O MENU LATERAL DE FILTROS
+st.sidebar.title('Filtros')
+
+# LIMPAR FILTROS
+if st.sidebar.button("Limpar Filtros"):
+    pyautogui.hotkey("ctrl","F5")
+
+## CRIAR FILTRO DE NOME DO PRODUTO    
+with st.sidebar.expander('Estados'):
+    uf_endereco_paciente = st.multiselect('Selecione os estados', 
+                             options=df_api_vaci_covid['uf_endereco_paciente'].unique(),
+                             default=df_api_vaci_covid['uf_endereco_paciente'].unique())
+
+## VALIDAR SE TODOS OS ESTADOS ESTAO SELECIONADOS
+if len(uf_endereco_paciente) > 0:
+    uf_endereco_paciente = uf_endereco_paciente 
+else:
+    uf_endereco_paciente = df_api_vaci_covid['uf_endereco_paciente'].unique()
+
+# APLICANDO OS FILTROS 
+## CRIA A QUERY PARA OS FILTROS
+query = '''
+    uf_endereco_paciente in @uf_endereco_paciente
+'''
+
+query2 = '''
+    uf in @uf_endereco_paciente
+'''
+
+## APLICA OS FILTROS DA QUERY
+df_api_vaci_covid = df_api_vaci_covid.query(query)
+df_lat_long = df_lat_long.query(query2)
 
 vacinacao_estados = df_api_vaci_covid.groupby('uf_endereco_paciente')[['municipio_paciente']].size().reset_index(name="count")
 

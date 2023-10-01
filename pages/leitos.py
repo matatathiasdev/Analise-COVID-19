@@ -9,6 +9,7 @@ import plotly.express as px
 import streamlit as st
 import pandas as pd
 import numpy as np
+import pyautogui
 import requests
 import urllib
 import re
@@ -78,6 +79,44 @@ li = [
 df_leitos_hosp_covid = df_leitos_hosp_covid[li]
 
 df_leitos_hosp_covid = df_leitos_hosp_covid.replace([np.inf, -np.inf, np.nan], 0)
+
+# CRIA O MENU LATERAL DE FILTROS
+st.sidebar.title('Filtros')
+
+# LIMPAR FILTROS
+if st.sidebar.button("Limpar Filtros"):
+    pyautogui.hotkey("ctrl","F5")
+
+## CRIAR FILTRO DE NOME DO PRODUTO    
+with st.sidebar.expander('Estados'):
+    estados = st.multiselect('Selecione os estados', 
+                             options=df_leitos_hosp_covid['estado'].unique(),
+                             default=df_leitos_hosp_covid['estado'].unique())
+
+municipio = st.sidebar.multiselect('Selecione os municipios', 
+                                   options=df_leitos_hosp_covid['municipio'].unique(),
+                                   default=df_leitos_hosp_covid['municipio'].unique())
+    
+## VALIDAR SE TODOS OS ESTADOS ESTAO SELECIONADOS
+if len(estados) > 0:
+    estados = estados 
+else:
+    estados = df_leitos_hosp_covid['estado'].unique()
+
+if len(municipio) > 0:
+    municipio = municipio 
+else:
+    municipio = df_leitos_hosp_covid['municipio'].unique()
+
+# APLICANDO OS FILTROS 
+## CRIA A QUERY PARA OS FILTROS
+query = '''
+    estado in @estados and \
+    municipio in @municipio
+'''
+
+## APLICA OS FILTROS DA QUERY
+df_leitos_hosp_covid = df_leitos_hosp_covid.query(query)
 
 df_leitos_hosp_covid['ocupacao_cli_total'] = (df_leitos_hosp_covid['ocupacao_suspeito_cli'] + 
                                               df_leitos_hosp_covid['ocupacao_confirmado_cli'] + 

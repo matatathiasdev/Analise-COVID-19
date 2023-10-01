@@ -3,7 +3,7 @@ from st_pages import Page, add_page_title, show_pages
 from pandas import json_normalize
 from bs4 import BeautifulSoup
 from io import BytesIO
-from pathlib import Path
+
 import urllib.request, json
 import plotly.express as px
 import streamlit as st
@@ -26,8 +26,8 @@ state = main.container()
 show_pages(
     [
         Page("main.py", "DASHBOARD COVID-19", ":hospital:"),
-        Page("pages/leitos.py", "LEITOS", ":books:"),
-        Page("pages/vacinacao.py", "VACINAÇÃO", "📖")
+        Page("pages/leitos.py", "LEITOS", "🛏️"),
+        Page("pages/vacinacao.py", "VACINAÇÃO", "💉")
     ]
 )
 
@@ -79,21 +79,18 @@ with st.sidebar.expander('Estados'):
     estados = st.multiselect('Selecione os estados', 
                              options=df_api_covid['estado'].unique(),
                              default=df_api_covid['estado'].unique())
-    
 
-
+## VALIDAR SE TODOS OS ESTADOS ESTAO SELECIONADOS
 if len(estados) > 0:
     estados = estados 
 else:
     estados = df_api_covid['estado'].unique()
-
 
 # APLICANDO OS FILTROS 
 ## CRIA A QUERY PARA OS FILTROS
 query = '''
     estado in @estados
 '''
-
 
 ## APLICA OS FILTROS DA QUERY
 df_api_covid = df_api_covid.query(query)
