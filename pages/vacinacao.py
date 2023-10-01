@@ -9,7 +9,6 @@ import plotly.express as px
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pyautogui
 import requests
 import urllib
 import re
@@ -120,9 +119,9 @@ df_api_vaci_covid = df_api_vaci_covid[li]
 # CRIA O MENU LATERAL DE FILTROS
 st.sidebar.title('Filtros')
 
-# LIMPAR FILTROS
-if st.sidebar.button("Limpar Filtros"):
-    pyautogui.hotkey("ctrl","F5")
+# # LIMPAR FILTROS
+# if st.sidebar.button("Limpar Filtros"):
+#     st.rerun()
 
 ## CRIAR FILTRO DE NOME DO PRODUTO    
 with st.sidebar.expander('Estados'):
