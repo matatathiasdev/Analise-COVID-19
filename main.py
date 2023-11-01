@@ -1,4 +1,5 @@
 ## BIBLIOTECAS
+from st_pages import Page, add_page_title, show_pages
 from pandas import json_normalize
 from bs4 import BeautifulSoup
 from io import BytesIO
@@ -12,6 +13,27 @@ import requests
 import urllib
 import re
 
+# LIMPAR O CASH DA PAGINA INICIAL
+main = st.container()
+body = main.container()
+body.empty()  # +++
+code_container = main.container()
+code_container.empty()
+state = main.container()
+
+# ARRUMAR OS NOMES DAS ABAS
+show_pages(
+    [
+        Page("main.py", "DASHBOARD COVID-19", ":hospital:"),
+        Page("pages/leitos.py", "LEITOS", "🛏️"),
+        Page("pages/vacinacao.py", "VACINAÇÃO", "💉")
+    ]
+)
+
+# ADDICIONAR A PAGINA E AJUSTAR O SEU LAYOUT DA PAGINA
+add_page_title(layout="wide")
+
+
 # FUNCAO FORMATA NUMERO
 def formata_numero(valor, prefixo = ''):
     for unidade in ['','mil']:
@@ -20,48 +42,10 @@ def formata_numero(valor, prefixo = ''):
         valor /= 1000
     return f'{prefixo} {valor:.3f} milhões'
 
-# LAYOUT DA PAGINA
-st.set_page_config(layout='wide')
-
 # shopping_trolley ADCIONAR UM EMOJI DE UM CARRINHO DE COMPRA 
-st.title('DASHBOARD COVID-19 :hospital:')
+# st.title('DASHBOARD COVID-19 :hospital:')
 
 # DADOS
-## LATITUDE E LONGITUDE DOS ESTADOS BRASILEIROS
-dados = [
-        ["AC","-8.77","-70.55"],
-        ["AL","-9.62","-36.82"],
-        ["AM","-3.47","-65.10"],
-        ["AP","1.41","-51.77"],
-        ["BA","-13.29","-41.71"],
-        ["CE","-5.20","-39.53"],
-        ["DF","-15.83","-47.86"],
-        ["ES","-19.19","-40.34"],
-        ["GO","-15.98","-49.86"],
-        ["MA","-5.42","-45.44"],
-        ["MT","-12.64","-55.42"],
-        ["MS","-20.51","-54.54"],
-        ["MG","-18.10","-44.38"],
-        ["PA","-3.79","-52.48"],
-        ["PB","-7.28","-36.72"],
-        ["PR","-24.89","-51.55"],
-        ["PE","-8.38","-37.86"],
-        ["PI","-6.60","-42.28"],
-        ["RJ","-22.25","-42.66"],
-        ["RN","-5.81","-36.59"],
-        ["RO","-10.83","-63.34"],
-        ["RS","-30.17","-53.50"],
-        ["RR","1.99","-61.33"],
-        ["SC","-27.45","-50.95"],
-        ["SE","-10.57","-37.45"],
-        ["SP","-22.19","-48.79"],
-        ["TO","-9.46","-48.26"]
-]
-
-cols = ["uf","latitude","longitude"]
-
-df_lat_long = pd.DataFrame(data=dados, columns=cols)
-
 ## ACESSAR DADOS DA API DO COVID POR ESTADO
 url = 'https://covid19-brazil-api.now.sh/api/report/v1'
 headers = {}
@@ -85,11 +69,21 @@ df_api_covid = df_api_covid.rename(columns={
 # CRIA O MENU LATERAL DE FILTROS
 st.sidebar.title('Filtros')
 
-## CRIAR FILTRO DE NOME DO PRODUTO
+# # LIMPAR FILTROS
+# if st.sidebar.button("Limpar Filtros"):
+#     st.rerun()
+
+## CRIAR FILTRO DE NOME DO PRODUTO    
 with st.sidebar.expander('Estados'):
     estados = st.multiselect('Selecione os estados', 
                              options=df_api_covid['estado'].unique(),
                              default=df_api_covid['estado'].unique())
+
+## VALIDAR SE TODOS OS ESTADOS ESTAO SELECIONADOS
+if len(estados) > 0:
+    estados = estados 
+else:
+    estados = df_api_covid['estado'].unique()
 
 # APLICANDO OS FILTROS 
 ## CRIA A QUERY PARA OS FILTROS
@@ -99,9 +93,6 @@ query = '''
 
 ## APLICA OS FILTROS DA QUERY
 df_api_covid = df_api_covid.query(query)
-if estados == "":
-    estados = df_api_covid['estado'].unique()
-    df_api_covid = df_api_covid.query(query)
 
 ### CASOS
 qtd_casos = df_api_covid.groupby('estado')[['casos']].sum().sort_values('estado', ascending=True)

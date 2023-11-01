@@ -1,4 +1,5 @@
 ## BIBLIOTECAS
+from st_pages import add_page_title
 from pandas import json_normalize
 from bs4 import BeautifulSoup
 from io import BytesIO
@@ -12,12 +13,13 @@ import requests
 import urllib
 import re
 
+add_page_title(layout="wide")
 # CACHEAR OS DADOS AO ABRIR A PAQUINA
-@st.cache_data
+# @st.cache_data
 
 # DADOS
 ## WEB SCRAPING CSV LEITOS HOSPITALARES COVID
-url="https://opendatasus.saude.gov.br/dataset/registro-de-ocupacao-hospitalar-covid-19"
+url = 'https://opendatasus.saude.gov.br/dataset/registro-de-ocupacao-hospitalar-covid-19'
 
 req = requests.get(url)
 soup = BeautifulSoup(req.text, features="html.parser")
@@ -31,7 +33,9 @@ for i in li:
                  encoding='UTF-8',
                  delimiter=',',
                  header=0,
-                 decimal='.')
+                 decimal='.',
+                 low_memory = False)
+    
     l.append(df)
 
 df_leitos_hosp_covid = pd.concat(l, axis=0, ignore_index=True)
@@ -74,6 +78,44 @@ li = [
 df_leitos_hosp_covid = df_leitos_hosp_covid[li]
 
 df_leitos_hosp_covid = df_leitos_hosp_covid.replace([np.inf, -np.inf, np.nan], 0)
+
+# CRIA O MENU LATERAL DE FILTROS
+st.sidebar.title('Filtros')
+
+# # LIMPAR FILTROS
+# if st.sidebar.button("Limpar Filtros"):
+#     st.rerun()
+
+## CRIAR FILTRO DE NOME DO PRODUTO    
+with st.sidebar.expander('Estados'):
+    estados = st.multiselect('Selecione os estados', 
+                             options=df_leitos_hosp_covid['estado'].unique(),
+                             default=df_leitos_hosp_covid['estado'].unique())
+
+municipio = st.sidebar.multiselect('Selecione os municipios', 
+                                   options=df_leitos_hosp_covid['municipio'].unique(),
+                                   default=df_leitos_hosp_covid['municipio'].unique())
+    
+## VALIDAR SE TODOS OS ESTADOS ESTAO SELECIONADOS
+if len(estados) > 0:
+    estados = estados 
+else:
+    estados = df_leitos_hosp_covid['estado'].unique()
+
+if len(municipio) > 0:
+    municipio = municipio 
+else:
+    municipio = df_leitos_hosp_covid['municipio'].unique()
+
+# APLICANDO OS FILTROS 
+## CRIA A QUERY PARA OS FILTROS
+query = '''
+    estado in @estados and \
+    municipio in @municipio
+'''
+
+## APLICA OS FILTROS DA QUERY
+df_leitos_hosp_covid = df_leitos_hosp_covid.query(query)
 
 df_leitos_hosp_covid['ocupacao_cli_total'] = (df_leitos_hosp_covid['ocupacao_suspeito_cli'] + 
                                               df_leitos_hosp_covid['ocupacao_confirmado_cli'] + 
@@ -146,8 +188,7 @@ fig_leitos_municipios = px.histogram(leitos_percentual_geral_municipios,
 fig_leitos_municipios.update_layout(yaxis_title='')
 fig_leitos_municipios.update_layout(xaxis_title='')
 
-with aba3:
-     tabela_ativa = 3
-     st.plotly_chart(fig_leitos_estados, use_container_width=True)
-     st.plotly_chart(fig_leitos_municipios, use_container_width=True)
+# VISUALIZACAO STREAMLIT
+st.plotly_chart(fig_leitos_estados, use_container_width=True)
+st.plotly_chart(fig_leitos_municipios, use_container_width=True)
              
